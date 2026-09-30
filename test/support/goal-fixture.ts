@@ -32,7 +32,7 @@ export function registerGoal(pi: Parameters<typeof goal>[0]) {
 }
 
 export function registerGoalWithSettingsPath(pi: Parameters<typeof goal>[0], goalSettingsPath: string) {
-  pi.setActiveTools([...new Set([...pi.getActiveTools(), "goal_complete", "goal_blocked", "goal_wait"])]);
+  pi.setActiveTools([...new Set([...pi.getActiveTools(), "goal"])]);
   goal(pi, { settingsPath: goalSettingsPath });
 }
 export type GoalTool = {
@@ -109,9 +109,14 @@ export function nonGoalContractSentMessages(mock: ReturnType<typeof createMockPi
 }
 
 export function requireGoalTool(mock: ReturnType<typeof createMockPi>, name: string) {
-  const tool = mock.tools.find((tool) => tool.name === name);
-  assert.ok(tool, `expected ${name} to be registered`);
-  return tool as unknown as GoalTool;
+  const tool = mock.tools.find((tool) => tool.name === "goal") as unknown as GoalTool;
+  assert.ok(tool, "expected unified goal to be registered");
+  const action = name.slice(5);
+  return { ...tool, execute: (id: string, params: any, signal: any, update: any, ctx: any) => {
+    const actual = action === "control" ? params.action : action;
+    const args = { ...params }; if (action === "control") delete args.action;
+    return tool.execute(id, { action: actual, args }, signal, update, ctx);
+  }} as GoalTool;
 }
 
 export function restoreGoalForTest(

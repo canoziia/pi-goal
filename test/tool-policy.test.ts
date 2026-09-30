@@ -4,7 +4,7 @@ import { createMockPi } from "./support.js";
 import { assertGoalToolsAvailable, goalToolsAvailable } from "../src/tool-policy.js";
 
 test("Goal tool availability requires completion and blocker tools without mutating the active set", () => {
-  const mock = createMockPi({ activeTools: ["read", "goal_complete", "goal_blocked"] });
+  const mock = createMockPi({ activeTools: ["read", "goal"] });
   let activeToolWrites = 0;
   const setActiveTools = mock.rawPi.setActiveTools.bind(mock.rawPi);
   mock.rawPi.setActiveTools = (tools) => {
@@ -15,7 +15,7 @@ test("Goal tool availability requires completion and blocker tools without mutat
   assert.equal(goalToolsAvailable(mock.pi), true);
   assert.doesNotThrow(() => assertGoalToolsAvailable(mock.pi));
   assert.equal(activeToolWrites, 0);
-  assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "goal_complete", "goal_blocked"]);
+  assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "goal"]);
 });
 
 test("Goal tool availability rejects a restrictive policy without widening it", () => {
@@ -28,7 +28,7 @@ test("Goal tool availability rejects a restrictive policy without widening it", 
   };
 
   assert.equal(goalToolsAvailable(mock.pi), false);
-  assert.throws(() => assertGoalToolsAvailable(mock.pi), /goal_blocked are unavailable/u);
+  assert.throws(() => assertGoalToolsAvailable(mock.pi), /goal is unavailable/u);
   assert.equal(activeToolWrites, 0);
   assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "goal_complete"]);
 });

@@ -58,9 +58,27 @@ Use the manager to review, pause, resume, edit, or clear the current goal.
 
 ### Model-callable Goal management
 
-- `goal_start({ objective, token_budget? })` starts a goal. Replacing **any** existing goal requires both `replace: true` and its exact current `goal_id`; no UI confirmation is shown.
-- `goal_edit({ goal_id, objective, token_budget? })` updates the objective, retaining the cumulative budget unless a new positive integer budget is provided.
-- `goal_control({ goal_id, action: "pause" | "resume" | "clear" })` uses the same transitions and safety checks as the corresponding commands.
+Only **one** model tool is exposed: `goal({ action?, args? })`.
+
+```json
+{}
+{"action":"help"}
+{"action":"help","args":{"action":"wait"}}
+{"action":"status"}
+{"action":"start","args":{"objective":"Implement and verify the feature"}}
+{"action":"edit","args":{"goal_id":"CURRENT_ID","objective":"Revised objective"}}
+{"action":"pause","args":{"goal_id":"CURRENT_ID"}}
+```
+
+Empty/help calls return concise discovery with examples; topic help returns that
+operation's detailed rules and schema. Available actions: start, edit, pause,
+resume, clear, complete, blocked, wait, status. Start replacement requires both
+`replace:true` and the exact current `goal_id`. Optional positive integer
+`token_budget` sets the budget; omitted on start means unlimited tokens and
+omitted on edit preserves the current budget. No extra UI approval is requested.
+The short tool description and Pi `promptSnippet` are always visible; detailed
+operation schemas and guidance are returned only when requested. Old `goal_*`
+tool names are no longer registered.
 
 Management tools schedule an intent for `turn_end`, after all tool results are committed. Their result is not proof of activation: use the subsequent Goal contract as authority. Only one management intent may be pending, and goal identity is rechecked before applying it. Edit and resume can rotate the ID; never reuse an old ID. Aborted or superseded requests are discarded. Tool visibility by itself does not mean Goal mode is active.
 
@@ -152,9 +170,10 @@ See [Managing goals](./docs/managing-goals.md) for safety-epoch resets, failed-d
 
 ## 🛠️ Tools
 
-- `goal_complete` records completion only for the exact active goal id, requires an evidence-based summary, and renders an accepted summary as Markdown in the TUI.
-- `goal_blocked` records a true repeated impasse with the exact goal id, reason, evidence, and repeated-turn count.
-- `goal_wait` pauses automatic continuation after the agent arranges an external wake source, with an optional bounded resume deadline.
+The `goal` gateway dispatches all actions. `complete` requires a verified summary,
+`blocked` requires repeated external-impasse evidence, and `wait` keeps the Goal
+quiet for an external wake event or safety deadline. See `goal({})` for examples
+and `goal({action:"help",args:{action:"complete"}})` for operation-specific rules.
 
 ## pi-web idle liveness (fork)
 

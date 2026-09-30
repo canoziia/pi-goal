@@ -433,9 +433,11 @@ test("buildGoalSystemPrompt escapes objective XML and includes goal_id guard rul
 
 test("all goal prompt paths share concise context without global behavioral rules", async () => {
   const started = await startGoalForTest();
-  assert.match(started.mock.tools.find((tool) => tool.name === "goal_complete")?.description ?? "", /audit requirement by requirement.*authoritative current evidence/);
-  assert.match(started.mock.tools.find((tool) => tool.name === "goal_blocked")?.description ?? "", /fresh three-turn blocker audit/);
-  assert.match(started.mock.tools.find((tool) => tool.name === "goal_wait")?.description ?? "", /non-Goal wake message.*not a polling interval/);
+  const gateway = requireGoalTool(started.mock, "goal_help");
+  for (const [action, pattern] of [["complete", /audit requirement by requirement.*authoritative current evidence/], ["blocked", /fresh three-turn blocker audit/], ["wait", /non-Goal wake message.*not a polling interval/]] as const) {
+    const response = await gateway.execute("help", {action}, undefined, undefined, started.ctx);
+    assert.match(response.content[0].text, pattern);
+  }
   const initialGoal = requireLastGoal(started.mock);
   const initialPrompt = started.mock.sentUserMessages[0]?.text ?? "";
   assert.deepEqual(started.mock.sentUserMessages[0]?.options, { deliverAs: "followUp" });

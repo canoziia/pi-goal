@@ -345,14 +345,14 @@ export function registerGoalLifecycle(
     if (
       runtime.activeGoal?.status === "budget_limited" &&
       runtime.budgetWrapUp?.goalId === runtime.activeGoal.id &&
-      event.toolName !== "goal_complete"
+      !(event.toolName === "goal" && event.input?.action === "complete")
     ) {
       // A blocked tool result would normally trigger another model call. Abort the
       // wrap-up instead so a tool-seeking model cannot create an unbounded loop.
       abortCurrentTurn(ctx);
       return {
         block: true,
-        reason: "Goal token budget is exhausted; only goal_complete is allowed during wrap-up.",
+        reason: 'Goal token budget is exhausted; only goal(action="complete") is allowed during wrap-up.',
       };
     }
     if (!runtime.staleGoalToolCallsBlocked) return;

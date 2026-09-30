@@ -404,7 +404,7 @@ test("token-budgeted continuation and wait resume preserve the post-activation r
     sessionManager: { getBranch: () => branch, getEntries: () => branch },
   });
   await mock.events.get("session_start")?.[0]?.({ reason: "startup" }, context.ctx);
-  assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "bash", "goal_complete", "goal_blocked", "goal_wait"]);
+  assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "bash", "goal"]);
 
   await mock.commands.get("goal")?.handler("--tokens 10k preserve the provider prefix", context.ctx);
   const kickoffPrompt = mock.sentUserMessages.at(-1)?.text ?? "";
@@ -416,7 +416,7 @@ test("token-budgeted continuation and wait resume preserve the post-activation r
     customType: kickoffContract.customType,
     content: kickoffContract.content,
   });
-  assert.deepEqual(kickoff.activeTools, ["read", "bash", "goal_complete", "goal_blocked", "goal_wait"]);
+  assert.deepEqual(kickoff.activeTools, ["read", "bash", "goal"]);
 
   branch.push(assistantUsageEntry({ totalTokens: 500 }));
   await mock.events.get("agent_end")?.[0]?.(

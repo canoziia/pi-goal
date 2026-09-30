@@ -4,7 +4,7 @@ import { createMockContext, createMockPi } from "./support.js";
 import { createGoal, GoalRuntime } from "../src/runtime.js";
 
 function runtime() {
-  const mock = createMockPi({ activeTools: ["goal_complete", "goal_blocked", "goal_wait"] });
+  const mock = createMockPi({ activeTools: ["goal"] });
   const state = new GoalRuntime(mock.pi);
   state.bindWorkflowSession({});
   assert.equal(state.acquireWorkflow(), true);

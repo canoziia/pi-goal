@@ -5,8 +5,7 @@ import { registerGoalLifecycle } from "./lifecycle.js";
 import { GoalRunController } from "./run-protocol.js";
 import { GoalRuntime } from "./runtime.js";
 import { registerGoalSessionLiveness } from "./session-liveness.js";
-import { registerGoalTools } from "./tools.js";
-import { registerGoalManagementTools } from "./management-tools.js";
+import { registerGoalTool } from "./goal-tool.js";
 
 interface GoalOptions {
   settingsPath?: string;
@@ -20,11 +19,10 @@ function registerGoalRuntime(pi: ExtensionAPI, options: GoalOptions = {}) {
   // Keep registration order explicit: managed-run bus listeners exist before tools,
   // command routing, and session lifecycle bind the per-factory runtime.
   runController.register(pi);
-  registerGoalTools(pi, runtime);
   registerGoalCommand(pi, runtime, commands, options);
   registerGoalLifecycle(pi, runtime, runController, options);
   registerGoalSessionLiveness(pi, runtime);
-  registerGoalManagementTools(pi, runtime);
+  registerGoalTool(pi, runtime);
 }
 
 export default function goal(pi: ExtensionAPI, options: GoalOptions = {}) {

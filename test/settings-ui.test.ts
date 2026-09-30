@@ -72,7 +72,7 @@ test("applyGoalSettings restores runtime settings when persistence fails", () =>
 });
 
 test("lowering the no-progress limit pauses and aborts in-flight Goal work", () => {
-  const mock = createMockPi({ activeTools: ["goal_complete", "goal_blocked", "goal_wait"] });
+  const mock = createMockPi({ activeTools: ["goal"] });
   const state = new GoalRuntime(mock.pi);
   state.settings = {
     ...structuredClone(DEFAULT_GOAL_SETTINGS),
@@ -100,7 +100,7 @@ test("lowering the no-progress limit pauses and aborts in-flight Goal work", () 
 });
 
 test("lowering a reached limit preserves an unrelated in-flight run", () => {
-  const mock = createMockPi({ activeTools: ["goal_complete", "goal_blocked", "goal_wait"] });
+  const mock = createMockPi({ activeTools: ["goal"] });
   const state = new GoalRuntime(mock.pi);
   state.settings = {
     ...structuredClone(DEFAULT_GOAL_SETTINGS),
@@ -129,7 +129,7 @@ test("lowering a reached limit preserves an unrelated in-flight run", () => {
 });
 
 test("replacement confirmation does not replace a goal that changed while open", async () => {
-  const mock = createMockPi({ activeTools: ["goal_complete", "goal_blocked", "goal_wait"] });
+  const mock = createMockPi({ activeTools: ["goal"] });
   const state = new GoalRuntime(mock.pi);
   state.activeGoal = createGoal("previewed objective", undefined, 0);
   const replacement = createGoal("replacement objective", undefined, 0);
@@ -151,7 +151,7 @@ test("replacement confirmation does not replace a goal that changed while open",
 });
 
 test("replacement confirmation sanitizes terminal controls without changing goal data", async () => {
-  const mock = createMockPi({ activeTools: ["goal_complete", "goal_blocked", "goal_wait"] });
+  const mock = createMockPi({ activeTools: ["goal"] });
   const state = new GoalRuntime(mock.pi);
   state.activeGoal = createGoal("current\u001b]8;;bad\u0007 objective", undefined, 0);
   let preview = "";

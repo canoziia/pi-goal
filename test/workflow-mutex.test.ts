@@ -166,7 +166,7 @@ test("busy direct start and resume preserve Goal state in every command mode", a
   for (const mode of ["tui", "rpc", "print", "json"] as const) {
     const sessionManager = { getBranch: () => [], getEntries: () => [] };
     const mock = createMockPi({
-      activeTools: ["read", "goal_complete", "goal_blocked", "goal_wait"],
+      activeTools: ["read", "goal"],
     });
     blockAgentWorkflow(mock, sessionManager);
     registerGoalWithSettingsPath(mock.pi, DEFAULT_SETTINGS_PATH);
@@ -242,7 +242,7 @@ test("busy managed-run RPC emits one anonymous terminal activation error", async
     await writeFile(settingsPath, JSON.stringify({ rpc: { enabled: true } }), "utf8");
     const sessionManager = { getBranch: () => [], getEntries: () => [] };
     const mock = createMockPi({
-      activeTools: ["read", "goal_complete", "goal_blocked", "goal_wait"],
+      activeTools: ["read", "goal"],
     });
     blockAgentWorkflow(mock, sessionManager);
     goal(mock.pi, { settingsPath });

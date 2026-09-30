@@ -61,7 +61,7 @@ const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
 
 function registerGoal(mock: ReturnType<typeof createMockPi>, settingsPath = ENABLED_SETTINGS_PATH) {
   mock.rawPi.setActiveTools([
-    ...new Set([...mock.rawPi.getActiveTools(), "goal_complete", "goal_blocked", "goal_wait"]),
+    ...new Set([...mock.rawPi.getActiveTools(), "goal"]),
   ]);
   goal(mock.pi, { settingsPath });
 }
@@ -107,9 +107,9 @@ function lastPersistedGoal(mock: ReturnType<typeof createMockPi>) {
 }
 
 function requireGoalTool(mock: ReturnType<typeof createMockPi>, name: string) {
-  const tool = mock.tools.find((candidate) => candidate.name === name);
-  assert.ok(tool, `expected ${name} to be registered`);
-  return tool as unknown as GoalTool;
+  const tool = mock.tools.find((candidate) => candidate.name === "goal") as unknown as GoalTool;
+  assert.ok(tool);
+  return {...tool, execute: (id: string, params: any, signal: any, update: any, ctx: any) => tool.execute(id,{action:name.slice(5),args:params},signal,update,ctx)} as GoalTool;
 }
 
 function assistantUsageEntry(totalTokens: number) {

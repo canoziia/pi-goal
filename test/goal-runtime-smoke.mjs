@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { InMemoryCredentialStore, Type } from "@earendil-works/pi-ai";
-import { createFauxCore, fauxAssistantMessage, fauxToolCall } from "@earendil-works/pi-ai/providers/faux";
+import { createFauxCore, fauxAssistantMessage, fauxToolCall as nativeFauxToolCall } from "@earendil-works/pi-ai/providers/faux";
 import {
   createAgentSession,
   DefaultResourceLoader,
@@ -12,6 +12,11 @@ import {
   SessionManager,
   SettingsManager,
 } from "@earendil-works/pi-coding-agent";
+
+function fauxToolCall(name, args) {
+  if (name.startsWith("goal_")) return nativeFauxToolCall("goal", { action: name.slice(5), args });
+  return nativeFauxToolCall(name, args);
+}
 
 const extensionPath = resolve(import.meta.dirname, "../src/goal.ts");
 
@@ -659,7 +664,7 @@ async function toolStartCompletionScenario() {
   const harness = await createHarness([
     fauxAssistantMessage(fauxToolCall("goal_start", { objective: "Verify tool-start runtime ordering" })),
     (context) => {
-      const resultIndex = context.messages.findIndex((message) => message.role === "toolResult" && message.toolName === "goal_start");
+      const resultIndex = context.messages.findIndex((message) => message.role === "toolResult" && message.toolName === "goal");
       const contractIndex = context.messages.findIndex((message) => userMessageText(message).includes("<goal_id>"));
       assert.ok(resultIndex >= 0, "goal_start result must reach the next provider request");
       assert.ok(contractIndex > resultIndex, "Goal contract must follow the committed tool result");
