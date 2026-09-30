@@ -17,7 +17,9 @@ test("replacement and edit defer contracts until turn_end and never ask UI confi
   await assert.rejects(call(active, "goal_edit", { goal_id: "stale", objective: "replacement" }));
   const sent = active.mock.sentUserMessages.length;
   await assert.rejects(call(active, "goal_start", { goal_id: original.id, objective: "replacement" }));
-  const result = await call(active, "goal_start", { replace: true, goal_id: original.id, objective: "replacement" });
+  await assert.rejects(call(active, "goal_replace", { objective: "replacement" }));
+  await assert.rejects(call(active, "goal_replace", { goal_id: "stale", objective: "replacement" }));
+  const result = await call(active, "goal_replace", { goal_id: original.id, objective: "replacement" });
   assert.equal(result.terminate, true);
   assert.equal(requireLastGoal(active.mock).id, original.id);
   assert.equal(active.mock.sentUserMessages.length, sent);

@@ -16,7 +16,7 @@ test("only one compact tool is exposed; empty and help are non-mutating discover
   assert.ok(tool.description.length < 300);
   const empty = await call({}), help = await call({action:"help"});
   assert.deepEqual(empty,help);
-  for(const action of ["start","edit","pause","resume","clear","complete","blocked","wait","status"]) assert.ok(help.content[0].text.includes(action));
+  for(const action of ["start","replace","edit","pause","resume","clear","complete","blocked","wait","status"]) assert.ok(help.content[0].text.includes(action));
   assert.equal(mock.entries.length,0);
   assert.equal(mock.sentUserMessages.length,0);
 });
@@ -27,6 +27,11 @@ test("detailed action help contains validation and rules only on demand", async 
   assert.match(result.content[0].text,/summary/);
   assert.doesNotMatch(tool.description,/audit requirement by requirement/);
   assert.match((await call({action:"help",args:{action:"wait"}})).content[0].text,/2147483647/);
+  const start = (await call({action:"help",args:{action:"start"}})).content[0].text;
+  const replace = (await call({action:"help",args:{action:"replace"}})).content[0].text;
+  assert.doesNotMatch(start, /"goal_id"|"replace"/);
+  assert.match(replace, /"goal_id"/);
+  assert.doesNotMatch(replace, /"replace":/);
 });
 test("status is readable without a goal; invalid actions and management args fail safely", async () => {
   const {call,mock}=setup();

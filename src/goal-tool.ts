@@ -11,7 +11,7 @@ function nameForHelp(action: string, schema: any) {
 }
 
 const ACTIONS: Record<string, string> = {
-  start: "goal_start", edit: "goal_edit", pause: "goal_control", resume: "goal_control", clear: "goal_control",
+  start: "goal_start", replace: "goal_replace", edit: "goal_edit", pause: "goal_control", resume: "goal_control", clear: "goal_control",
   complete: "goal_complete", blocked: "goal_blocked", wait: "goal_wait",
 };
 
@@ -25,7 +25,7 @@ export function registerGoalTool(pi: ExtensionAPI, runtime: GoalRuntime) {
   const examples = [
     '{}', '{"action":"help"}', '{"action":"status"}',
     '{"action":"start","args":{"objective":"Implement and verify the feature"}}',
-    '{"action":"start","args":{"objective":"New objective","replace":true,"goal_id":"CURRENT_ID"}}',
+    '{"action":"replace","args":{"objective":"New objective","goal_id":"CURRENT_ID"}}',
     '{"action":"edit","args":{"goal_id":"CURRENT_ID","objective":"Revised objective"}}',
     ...["pause", "resume", "clear"].map(action => JSON.stringify({action,args:{goal_id:"CURRENT_ID"}})),
     '{"action":"complete","args":{"goal_id":"CURRENT_ID","summary":"Delivered changes and verification evidence"}}',
@@ -35,7 +35,7 @@ export function registerGoalTool(pi: ExtensionAPI, runtime: GoalRuntime) {
   const help = () => [
     "Goal: one persistent objective with automatic continuation. Use status for the current ID. No extra interactive approval is requested by management actions.",
     "Calls (args contains action-specific parameters):", ...examples,
-    "start: omit token_budget for unlimited tokens; optional positive integer token_budget. Replacement requires replace:true and current goal_id.",
+    "start: create only when no goal exists. replace: replace an existing goal using its current goal_id, resetting goal usage. Both accept optional positive integer token_budget; omitted means unlimited tokens.",
     "edit: objective required; optional token_budget changes the cumulative budget, omitted preserves it. Edit/resume may rotate the ID. Management changes apply after tool results are committed; the next contract is authoritative.",
     'complete: require verified completion and an evidence summary. blocked: same external blocker for at least three consecutive turns, with reason and evidence. wait: arrange external wake notification first; optional safety deadline, minimum effective 10000ms. Call terminal actions alone.',
     'For detailed rules and parameter schema: {"action":"help","args":{"action":"complete"}} (or another action).',
@@ -67,7 +67,7 @@ export function registerGoalTool(pi: ExtensionAPI, runtime: GoalRuntime) {
       // Management handlers assume schema-valid input. Terminal handlers perform
       // their own bounded validation and return precise rejection results.
       const { Value } = await import("typebox/value");
-      if (["start", "edit", "pause", "resume", "clear"].includes(action) && !Value.Check(tool.parameters, args)) throw new Error(`Invalid parameters for goal ${action}. Call goal({}) for help.`);
+      if (["start", "replace", "edit", "pause", "resume", "clear"].includes(action) && !Value.Check(tool.parameters, args)) throw new Error(`Invalid parameters for goal ${action}. Call goal({}) for help.`);
       const result = await tool.execute(callId,args,signal,update,ctx);
       return { ...result, content: result.content.map((block: any) => block.type === "text" ? {...block, text: block.text.replaceAll("goal_complete", 'goal(action="complete")').replaceAll("goal_blocked", 'goal(action="blocked")').replaceAll("goal_wait", 'goal(action="wait")')} : block) };
     },

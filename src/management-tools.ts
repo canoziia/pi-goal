@@ -4,11 +4,10 @@ import { validateObjective } from "./command.js";
 import { GoalCommandController } from "./commands.js";
 import { goalIdRejectionReason, MAX_GOAL_ID_LENGTH, type GoalRuntime, type StatusContext } from "./runtime.js";
 
-type Operation = "start" | "edit" | "pause" | "resume" | "clear";
+type Operation = "start" | "replace" | "edit" | "pause" | "resume" | "clear";
 interface Request {
   operation: Operation;
   goalId?: string;
-  replace?: boolean;
   objective?: string;
   tokenBudget?: number;
   sessionManager: unknown;
@@ -26,9 +25,8 @@ export function registerGoalManagementTools(pi: ExtensionAPI, runtime: GoalRunti
 
   function rejection(request: Request): string | undefined {
     const goal = runtime.activeGoal;
-    if (request.operation === "start" && goal && request.replace !== true) return "replacement requires replace: true and exact goal_id";
+    if (request.operation === "start" && goal) return "a goal already exists; use replace with its exact goal_id";
     if (request.operation === "start" && !goal) {
-      if (request.replace) return "replace supplied but no goal exists";
       if (request.goalId !== undefined) return "replacement goal_id supplied but no goal exists";
     } else {
       if (!goal) return "no goal exists";
@@ -60,10 +58,19 @@ export function registerGoalManagementTools(pi: ExtensionAPI, runtime: GoalRunti
   pi.registerTool(defineTool({
     name: "goal_start",
     label: "Goal Start",
-    description: "Start Goal mode for an explicit objective. To replace any existing goal, supply replace: true and its exact current goal_id. No interactive confirmation is requested. Applied after this turn's tool results are committed.",
-    parameters: Type.Object({ objective, token_budget: budget, goal_id: Type.Optional(id), replace: Type.Optional(Type.Boolean()) }),
+    description: "Create a new Goal for an explicit objective. Rejects any existing goal; use replace instead. No interactive confirmation is requested. Applied after this turn's tool results are committed.",
+    parameters: Type.Object({ objective, token_budget: budget }, { additionalProperties: false }),
     async execute(_callId, params, signal, _update, ctx) {
-      return enqueue({ operation: "start", replace: params.replace, objective: params.objective.trim(), tokenBudget: params.token_budget, goalId: params.goal_id?.trim(), sessionManager: ctx.sessionManager }, signal);
+      return enqueue({ operation: "start", objective: params.objective.trim(), tokenBudget: params.token_budget, sessionManager: ctx.sessionManager }, signal);
+    },
+  }));
+  pi.registerTool(defineTool({
+    name: "goal_replace",
+    label: "Goal Replace",
+    description: "Replace the existing Goal with a new objective. Requires the exact current goal_id. Creates a new ID and resets goal usage; omit token_budget for unlimited tokens. No interactive confirmation is requested. Applied after tool results are committed.",
+    parameters: Type.Object({ goal_id: id, objective, token_budget: budget }, { additionalProperties: false }),
+    async execute(_callId, params, signal, _update, ctx) {
+      return enqueue({ operation: "replace", objective: params.objective.trim(), tokenBudget: params.token_budget, goalId: params.goal_id.trim(), sessionManager: ctx.sessionManager }, signal);
     },
   }));
   pi.registerTool(defineTool({
@@ -98,6 +105,7 @@ export function registerGoalManagementTools(pi: ExtensionAPI, runtime: GoalRunti
     // Identity was checked twice; tools authorize replacement explicitly, not via UI.
     const toolContext: StatusContext = { ...ctx, ui: { ...ctx.ui, confirm: async () => true } };
     switch (request.operation) {
+      case "replace":
       case "start": await controller.startGoal(request.objective!, request.tokenBudget, toolContext); break;
       case "edit": await controller.editGoal(request.objective!, request.tokenBudget, toolContext); break;
       case "pause": controller.pauseGoal(toolContext); break;

@@ -72,9 +72,10 @@ Only **one** model tool is exposed: `goal({ action?, args? })`.
 
 Empty/help calls return concise discovery with examples; topic help returns that
 operation's detailed rules and schema. Available actions: start, edit, pause,
-resume, clear, complete, blocked, wait, status. Start replacement requires both
-`replace:true` and the exact current `goal_id`. Optional positive integer
-`token_budget` sets the budget; omitted on start means unlimited tokens and
+resume, clear, complete, blocked, wait, status, replace. Start rejects an existing
+Goal; use `{"action":"replace","args":{"goal_id":"CURRENT_ID","objective":"New objective"}}`
+to replace it with a fresh ID and reset goal usage. Optional positive integer
+`token_budget` sets the budget; omitted on start/replace means unlimited tokens and
 omitted on edit preserves the current budget. No extra UI approval is requested.
 The short tool description and Pi `promptSnippet` are always visible; detailed
 operation schemas and guidance are returned only when requested. Old `goal_*`
