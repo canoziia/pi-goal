@@ -56,6 +56,14 @@ Goal mode can start repeated paid model turns and edit the current workspace, so
 Run `/goal <objective>` to start Goal mode, or run `/goal` to open the state-aware manager.
 Use the manager to review, pause, resume, edit, or clear the current goal.
 
+### Model-callable Goal management
+
+- `goal_start({ objective, token_budget? })` starts a goal. Replacing **any** existing goal requires both `replace: true` and its exact current `goal_id`; no UI confirmation is shown.
+- `goal_edit({ goal_id, objective, token_budget? })` updates the objective, retaining the cumulative budget unless a new positive integer budget is provided.
+- `goal_control({ goal_id, action: "pause" | "resume" | "clear" })` uses the same transitions and safety checks as the corresponding commands.
+
+Management tools schedule an intent for `turn_end`, after all tool results are committed. Their result is not proof of activation: use the subsequent Goal contract as authority. Only one management intent may be pending, and goal identity is rechecked before applying it. Edit and resume can rotate the ID; never reuse an old ID. Aborted or superseded requests are discarded. Tool visibility by itself does not mean Goal mode is active.
+
 ## ⚙️ Settings
 
 Use `/goal` → **Settings…** in TUI mode, or edit `<getAgentDir()>/pi-goal.json` (normally `~/.pi/agent/pi-goal.json`).

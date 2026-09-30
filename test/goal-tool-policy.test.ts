@@ -30,13 +30,13 @@ test("goal registers command, status tools, and lifecycle hooks", () => {
   assert.equal(typeof mock.commands.get("goal")?.getArgumentCompletions, "function");
   assert.deepEqual(
     mock.tools.map((tool) => tool.name),
-    ["goal_complete", "goal_blocked", "goal_wait"],
+    ["goal_complete", "goal_blocked", "goal_wait", "goal_start", "goal_edit", "goal_control"],
   );
   assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "bash", "goal_complete", "goal_blocked", "goal_wait"]);
   const context = createMockContext();
   mock.events.get("session_start")?.[0]?.({}, context.ctx);
   assert.deepEqual(mock.rawPi.getActiveTools(), ["read", "bash", "goal_complete", "goal_blocked", "goal_wait"]);
-  for (const tool of mock.tools.filter((candidate) => candidate.name?.startsWith("goal_"))) {
+  for (const tool of mock.tools.filter((candidate) => ["goal_complete", "goal_blocked", "goal_wait"].includes(candidate.name ?? ""))) {
     assert.match(String(tool.description), /visibility alone does not activate Goal mode/i);
     assert.equal(tool.promptSnippet, undefined);
     assert.equal(tool.promptGuidelines, undefined);
@@ -97,6 +97,7 @@ test("goal registers command, status tools, and lifecycle hooks", () => {
     "input",
     "message_start",
     "session_before_compact",
+    "session_before_switch",
     "session_compact",
     "session_shutdown",
     "session_start",

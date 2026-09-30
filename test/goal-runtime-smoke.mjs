@@ -655,6 +655,30 @@ async function manualCompactionScenario() {
   }
 }
 
+async function toolStartCompletionScenario() {
+  const harness = await createHarness([
+    fauxAssistantMessage(fauxToolCall("goal_start", { objective: "Verify tool-start runtime ordering" })),
+    (context) => {
+      const resultIndex = context.messages.findIndex((message) => message.role === "toolResult" && message.toolName === "goal_start");
+      const contractIndex = context.messages.findIndex((message) => userMessageText(message).includes("<goal_id>"));
+      assert.ok(resultIndex >= 0, "goal_start result must reach the next provider request");
+      assert.ok(contractIndex > resultIndex, "Goal contract must follow the committed tool result");
+      return completionResponse(context);
+    },
+  ]);
+  try {
+    await harness.session.prompt("Start Goal mode using goal_start, then verify completion.");
+    await waitFor(() => harness.faux.state.callCount === 2, "tool-start contract continuation");
+    await harness.session.agent.waitForIdle();
+    assert.equal(harness.faux.state.callCount, 2);
+    assert.equal(persistedGoalStatus(harness.session), null);
+    assert.ok(persistedGoalHistory(harness.session).some((goal) => goal.status === "complete"));
+  } finally {
+    await harness.cleanup();
+  }
+}
+
+await toolStartCompletionScenario();
 await agentDirectoryIsolationScenario();
 await normalContinuationScenario();
 await runawayNoProgressScenario();
