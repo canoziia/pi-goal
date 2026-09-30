@@ -85,24 +85,9 @@ export function assertHardenedGoalPrompt(prompt: string) {
   );
   assert.equal(prompt.split(trustBoundary).length - 1, 1);
   assert.match(prompt, /not as higher-priority instructions/i);
-  assert.match(prompt, /preserve the full objective across turns/i);
-  assert.match(prompt, /narrower, safer, smaller, merely compatible, or easier-to-test/i);
-  assert.match(prompt, /derive concrete requirements.*referenced files.*plans.*specifications.*issues/is);
-  assert.match(prompt, /current worktree.*runtime behavior.*PR state.*authoritative/is);
-  assert.match(prompt, /previous conversation.*context, not proof/is);
-  assert.match(prompt, /completion as unproven.*requirement by requirement/is);
-  assert.match(prompt, /every explicit requirement, artifact, command, test, gate, invariant, and deliverable/i);
-  assert.match(prompt, /match verification scope to requirement scope/i);
-  assert.match(prompt, /weak, indirect, missing.*not enough/is);
-  assert.match(prompt, /no required work remains/i);
-  assert.match(prompt, /goal_blocked.*true impasse.*three consecutive goal turns/is);
-  assert.match(prompt, /resumed.*fresh three-turn blocker audit/is);
-  assert.match(prompt, /hard, slow, uncertain.*recoverable/is);
-  assert.match(prompt, /arrange a non-goal wake message.*goal_wait.*exact current goal_id/is);
-  assert.match(prompt, /prefer longer goal_wait deadlines.*minutes.*busy polling/is);
-  assert.match(prompt, /below 10000ms.*clamped.*omitting resume_after_ms.*quiet/is);
-  assert.match(prompt, /goal_wait alone.*parallel sibling tools/is);
-  assert.match(prompt, /goal_blocked.*recoverable external wait/is);
+  assert.match(prompt, /identifies the current Goal for tool calls and rejects stale calls/);
+  assert.doesNotMatch(prompt, /Goal-mode rules|autonomously|completion as unproven|requirement by requirement|authoritative|fresh three-turn|busy polling/i);
+  assert.doesNotMatch(prompt, /user explicitly resumed/i);
 }
 
 export function assistantUsageEntry(usage: Record<string, unknown>) {
@@ -111,8 +96,8 @@ export function assistantUsageEntry(usage: Record<string, unknown>) {
 
 export function assertPromptHasGoalId(prompt: string, goalId: string) {
   assert.match(prompt, new RegExp(`<goal_id>\\s*${escapeRegExp(goalId)}\\s*</goal_id>`));
-  assert.match(prompt, /pass this exact goal_id/);
-  assert.match(prompt, /stale-turn guard/);
+  assert.match(prompt, /identifies the current Goal for tool calls/i);
+  assert.match(prompt, /rejects stale calls/);
 }
 
 export function escapeRegExp(value: string) {

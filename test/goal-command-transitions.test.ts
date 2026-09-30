@@ -192,7 +192,7 @@ test("resume safely reactivates every resumable stopped status and rotates goal_
     assert.match(restored.notifications.at(-1)?.message ?? "", /counter.*0 of 25/i);
     assert.match(restored.notifications.at(-1)?.message ?? "", /progress and cumulative usage are preserved/i);
     assert.equal(restored.mock.sentUserMessages.length, 1);
-    assert.match(restored.mock.sentUserMessages[0]?.text ?? "", /explicitly resumed/i);
+    assert.match(restored.mock.sentUserMessages[0]?.text ?? "", /was resumed/i);
     assert.equal(
       restored.mock.events.get("tool_call")?.[0]?.(
         { toolName: "bash", toolCallId: `tool-after-${status}`, input: {} },

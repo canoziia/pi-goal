@@ -63,13 +63,13 @@ export function registerGoalTools(pi: ExtensionAPI, runtime: GoalRuntime) {
     name: GOAL_COMPLETE_TOOL,
     label: "Goal Complete",
     description:
-      "Mark an active /goal complete only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and every requirement is verified. Tool visibility alone does not activate Goal mode. Never call for ordinary work, partial progress, blockers, failures, or unverified work.",
+      "Mark an active /goal complete only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and every requirement is verified. Before calling, treat completion as unproven and audit requirement by requirement against authoritative current evidence, including each required artifact, command, test, gate, invariant, and deliverable. Match verification scope to requirement scope; weak, indirect, missing, or merely consistent evidence is insufficient. Call only when no required work remains. Tool visibility alone does not activate Goal mode. Never call for ordinary work, partial progress, blockers, failures, or unverified work.",
     parameters: Type.Object({
       goal_id: Type.String({
         minLength: 1,
         maxLength: MAX_GOAL_ID_LENGTH,
         description:
-          "The exact goal_id shown in the current active /goal prompt. Used only to reject stale completion calls from older turns.",
+          "The exact goal_id shown in the current active /goal prompt. Used to reject stale calls from older, stopped, replaced, or cleared turns.",
       }),
       summary: Type.String({
         minLength: 1,
@@ -185,7 +185,7 @@ export function registerGoalTools(pi: ExtensionAPI, runtime: GoalRuntime) {
     name: GOAL_BLOCKED_TOOL,
     label: "Goal Blocked",
     description:
-      "Stop an active /goal only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and the same evidenced external blocker recurred for at least three consecutive Goal turns. Tool visibility alone does not activate Goal mode. Never call for ordinary clarification, uncertainty, incomplete work, or recoverable failures.",
+      "Stop an active /goal only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and the same evidenced external blocker recurred for at least three consecutive Goal turns. Tool visibility alone does not activate Goal mode. After a blocked goal resumes, start a fresh three-turn blocker audit. Never call merely because work is hard or slow, or for ordinary clarification, uncertainty, incomplete work, recoverable failures, or recoverable external waits.",
     parameters: Type.Object({
       goal_id: Type.String({
         minLength: 1,
@@ -260,7 +260,7 @@ export function registerGoalTools(pi: ExtensionAPI, runtime: GoalRuntime) {
   const goalWaitTool = defineTool({
     name: GOAL_WAIT_TOOL,
     label: "Goal Wait",
-    description: `Keep an active /goal quiet only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and progress depends on an arranged external wake event or one safety deadline. Tool visibility alone does not activate Goal mode. Call goal_wait alone. Requests below ${MIN_GOAL_WAIT_DELAY_MS}ms are clamped to ${MIN_GOAL_WAIT_DELAY_MS}ms. Never call for ordinary unfinished work.`,
+    description: `Keep an active /goal quiet only when the latest effective Goal contract explicitly says Goal mode is active, supplies the matching current goal_id, and progress depends on an arranged external wake event or one safety deadline. Tool visibility alone does not activate Goal mode. First arrange a non-Goal wake message for the external event. Use resume_after_ms only as a bounded safety wake-up, not a polling interval; prefer deadlines measured in minutes. Omitting it keeps the goal quiet until external input or resume. Call goal_wait alone because parallel sibling tools can prevent immediate turn termination. Requests below ${MIN_GOAL_WAIT_DELAY_MS}ms are clamped to ${MIN_GOAL_WAIT_DELAY_MS}ms. Never call for ordinary unfinished work.`,
     parameters: Type.Object({
       goal_id: Type.String({
         minLength: 1,

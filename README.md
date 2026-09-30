@@ -242,11 +242,10 @@ Legacy session entries are migrated by preserving their accumulated seconds and 
 While a goal is active, Goal-owned messages carry persistence rules and a `<goal_id>` stale-turn guard, and pi-goal exposes `goal_complete`.
 Kickoff, resume, edited-objective, wait-resume, and automatic-continuation prompts place a trust boundary before the escaped objective and identify it as user-provided task data.
 They preserve its full scope across turns and require the agent to derive concrete requirements from the objective and referenced artifacts.
-The prompts treat the current worktree, command output, tests, runtime behavior, pull request state, rendered artifacts, and external state as authoritative.
-Previous conversation and plans are context, not proof.
+Goal prompts carry concise objective, identity, trust boundary, event, budget, and continuation-marker context, without a global behavioral rules block. The current `goal_id` is the stale-turn guard for all Goal tools, not part of the objective. Resume events do not imply that a user explicitly requested them.
 
 Goal helper names, definitions, and active prompt metadata remain stable across Goal activation, continuation, token accounting, wait resume, completion, and clearing.
-Mode-only positive instructions live in the append-only active Goal contract instead of globally active tool prompt metadata.
+Function-specific completion, blocker, and waiting instructions live in their tool descriptions, gated on the latest effective active Goal contract.
 Current token-budget usage is carried by the newly appended Goal prompt instead of rewriting leading system instructions.
 The first accepted handoff for each Goal identity persists one deterministic hidden Goal contract at the same agent-start boundary, after previously retained conversation history.
 The contract explicitly supersedes earlier Goal contracts, excludes mutable token, iteration, and elapsed-time counters, and stays at its appended history position.
@@ -255,10 +254,10 @@ Completion, clearing, and stopped transitions append one inactive superseding co
 Compaction and session restore append a missing current-state contract without waking a waiting Goal.
 These structural guarantees make provider prefix reuse possible, but the provider still decides cache eligibility, cache hits, pricing, and billing.
 
-Before completion, the shared audit tells the agent to treat completion as unproven.
+Before completion, the `goal_complete` description tells the agent to treat completion as unproven.
 The agent must inspect evidence for every named artifact, command, test, gate, invariant, and deliverable and match each check to the requirement it supports.
 Weak, indirect, missing, or merely consistent evidence means work must continue.
-This prompt wording is a behavioral guardrail, not proof.
+This tool-description wording is a behavioral guardrail, not proof.
 Pi-goal can enforce the current goal id and reject empty or plainly contradictory summaries, but it cannot prove that external work is complete.
 
 To finish, the agent must call `goal_complete` with the exact current `goal_id` and a `summary` of completion evidence.

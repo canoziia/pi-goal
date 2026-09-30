@@ -181,7 +181,7 @@ const MAX_PENDING_GOAL_PROMPTS = 20;
 const MAX_PENDING_NON_GOAL_INPUTS = 20;
 const BUDGET_WRAP_UP_MESSAGE_TYPE = "goal-budget-wrap-up";
 const BUDGET_WRAP_UP_PROMPT =
-  "The active /goal token budget is exhausted. Stop substantive work and do not call substantive tools. Summarize progress, verified results, remaining work, and blockers concisely. Treat completion as unproven. Do not call goal_complete unless authoritative, requirement-by-requirement evidence already proves every requirement is complete. Weak, indirect, or missing evidence is not enough. Budget exhaustion is not completion.";
+  "The active /goal token budget is exhausted. Stop substantive work and do not call substantive tools. Summarize progress, verified results, remaining work, and blockers concisely. Budget exhaustion is not completion; goal_complete requirements still apply.";
 const CONTRADICTORY_COMPLETION_PATTERNS = [
   /(?<!could\s)\bnot\s+(?:yet\s+)?(?:complete|completed|done|finished)\b/i,
   /\bstill\s+(?:incomplete|failing|failing\s+tests?|fails?)\b/i,

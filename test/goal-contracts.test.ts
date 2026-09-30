@@ -425,14 +425,17 @@ test("buildGoalSystemPrompt escapes objective XML and includes goal_id guard rul
 
   assert.match(prompt, /fix &lt;all&gt; &amp; verify/);
   assert.match(prompt, /g&lt;1&amp;2&gt;/);
-  assert.match(prompt, /Respect the goal token budget \(250\/1k used\)/);
-  assert.match(prompt, /Only call the goal_complete tool after/);
-  assert.match(prompt, /pass this exact goal_id/);
-  assert.match(prompt, /stale-turn guard/);
+  assert.match(prompt, /Token budget: 250\/1k used\./);
+  assertHardenedGoalPrompt(prompt);
+  assert.match(prompt, /identifies the current Goal for tool calls/i);
+  assert.match(prompt, /rejects stale calls/);
 });
 
-test("all goal prompt paths share the goal_id guard and hardened audit", async () => {
+test("all goal prompt paths share concise context without global behavioral rules", async () => {
   const started = await startGoalForTest();
+  assert.match(started.mock.tools.find((tool) => tool.name === "goal_complete")?.description ?? "", /audit requirement by requirement.*authoritative current evidence/);
+  assert.match(started.mock.tools.find((tool) => tool.name === "goal_blocked")?.description ?? "", /fresh three-turn blocker audit/);
+  assert.match(started.mock.tools.find((tool) => tool.name === "goal_wait")?.description ?? "", /non-Goal wake message.*not a polling interval/);
   const initialGoal = requireLastGoal(started.mock);
   const initialPrompt = started.mock.sentUserMessages[0]?.text ?? "";
   assert.deepEqual(started.mock.sentUserMessages[0]?.options, { deliverAs: "followUp" });
@@ -471,7 +474,7 @@ test("all goal prompt paths share the goal_id guard and hardened audit", async (
   });
   assertPromptHasGoalId(resumedPrompt, resumedGoal.id);
   assertHardenedGoalPrompt(resumedPrompt);
-  assert.match(resumedPrompt, /explicitly resumed the paused \/goal/i);
+  assert.match(resumedPrompt, /paused \/goal was resumed/i);
 
   await started.mock.commands.get("goal")?.handler("edit verify edited objective", started.ctx);
   const editedGoal = requireLastGoal(started.mock);
@@ -482,7 +485,6 @@ test("all goal prompt paths share the goal_id guard and hardened audit", async (
   assertPromptHasGoalId(editedPrompt, editedGoal.id);
   assertHardenedGoalPrompt(editedPrompt);
   assert.match(editedPrompt, /updated objective supersedes every previous goal objective/i);
-  assert.match(editedPrompt, /work that only served the previous objective/i);
 });
 
 test("automatic continuation keeps adversarial objective text escaped", async () => {
