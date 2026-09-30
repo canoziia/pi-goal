@@ -156,6 +156,17 @@ See [Managing goals](./docs/managing-goals.md) for safety-epoch resets, failed-d
 - `goal_blocked` records a true repeated impasse with the exact goal id, reason, evidence, and repeated-turn count.
 - `goal_wait` pauses automatic continuation after the agent arranges an external wake source, with an optional bounded resume deadline.
 
+## pi-web idle liveness (fork)
+
+When pi-web exposes its version-1 session-liveness registry, this fork registers
+one session-scoped provider. Active Goals, including `goal_wait` with or without
+a deadline, prevent automatic idle eviction even after ten minutes and without
+a browser lease. Paused, blocked, completed, budget-limited, usage-limited, and
+cleared Goals do not keep the session alive. Shutdown/replacement unregisters the
+provider. Explicit shutdown and process termination still win; this does not
+persist external monitors or restart a stopped server. Ordinary Pi without this
+registry works unchanged, with no extra timers or pi-web dependency.
+
 ## 🔁 Session and reload behavior
 
 Goal state is stored in the current Pi session.

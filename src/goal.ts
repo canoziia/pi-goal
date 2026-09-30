@@ -4,6 +4,7 @@ import { GoalCommandController } from "./commands.js";
 import { registerGoalLifecycle } from "./lifecycle.js";
 import { GoalRunController } from "./run-protocol.js";
 import { GoalRuntime } from "./runtime.js";
+import { registerGoalSessionLiveness } from "./session-liveness.js";
 import { registerGoalTools } from "./tools.js";
 import { registerGoalManagementTools } from "./management-tools.js";
 
@@ -22,6 +23,7 @@ function registerGoalRuntime(pi: ExtensionAPI, options: GoalOptions = {}) {
   registerGoalTools(pi, runtime);
   registerGoalCommand(pi, runtime, commands, options);
   registerGoalLifecycle(pi, runtime, runController, options);
+  registerGoalSessionLiveness(pi, runtime);
   registerGoalManagementTools(pi, runtime);
 }
 
